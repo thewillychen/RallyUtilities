@@ -1,9 +1,10 @@
+var selectedRecords = [];
 Ext.define('CustomApp', {
     extend: 'Rally.app.App',
     componentCls: 'app',
     items:{ html:'<a href="https://help.rallydev.com/apps/2.0rc3/doc/">App SDK 2.0rc3 Docs</a>'},
     launch: function() {
-        var selectedRecords = [];
+       // var selectedRecords = [];
         var grid = this.add({
             xtype: 'rallygrid',
             columnCfgs: ['FormattedID','Name','JiraID','FixVersion'],
@@ -14,7 +15,7 @@ Ext.define('CustomApp', {
                 model: 'userstory'
             },
             listeners: {
-                select: this._onSelect(selectedRecords),
+                select: this._onSelect,
                 deselect: this._onDeselect,
                 load: function(){
                     var records = grid.getStore();
@@ -45,14 +46,14 @@ Ext.define('CustomApp', {
         });                
     },
 
-    _onSelect: function(rowModel, record, rowIndex, options, selectedRecords) {
+    _onSelect: function(rowModel, record, rowIndex, options) {
 
         console.log('onSelect');
         selectedRecords.push(record);
         console.log(record);
     },
 
-    _onDeselect: function(rowModel, record, rowIndex, options, selectedRecords) {
+    _onDeselect: function(rowModel, record, rowIndex, options) {
         console.log('onDeSelect');
         var index = selectedRecords.indexOf(record);
         if(index != -1){

@@ -23,9 +23,6 @@ Ext.define('CustomApp', {
                 }
             }
         });
-        // var records = grid.getStore();
-        // console.log(records.count());
-
         this.add({
             xtype: 'rallybutton',
             text: 'Convert to Feature',
@@ -61,33 +58,49 @@ Ext.define('CustomApp', {
         }
         console.log(selectedRecords);
     },
-/*    _getArray: function(){
-        return selectedRecords;
+
+    _confirmConversion: function(){
+        var that = this;
+        console.log(that);
+        console.log('clicked');
+        console.log('In confirm conversion');
+        if(selectedRecords.length === 0){
+            console.log('In confirmation');
+             Ext.create('Rally.ui.dialog.ConfirmDialog', {
+                title: "Confirm Portfolio item Conversion",
+                message: 'Are you sure?',
+                confirmLabel: 'Yes',
+                modal: true,
+                listeners: {
+                    confirm: function(){
+                        console.log('in confirm');
+                        that._convertToPortfolioItem();
+                    }
+                }
+            });           
+        }
+        else{
+            Ext.create('Rally.ui.dialog.ConfirmDialog', {
+                title: "Confirm Portfolio item Conversion",
+                message: 'Please select at least one user story to convert',
+                confirmLabel: 'Okay',
+                modal: true,
+                listeners: {
+                    confirm: this.close
+                }
+            });
+        }
     },
-    _updateArray: function(array){
-        selectedRecords = array;
-    }
-*/
-    _convertToPortfolioItem: function (record) {
-        // var message = "Are you sure you want to convert {0} to a Portfolio Item?<br/><br/>" +
-        // "Children and attachments for { q0} will be moved to the new Portfolio Item." +
-        // " Other work items (e.g., Defects) will remain associated with {0}.";
 
 
-        // this.confirmationDialog = Ext.create('Rally.ui.dialog.ConfirmDialog', {
-        //     title: "Confirm Portfolio Item Conversion",
-        //     message: "Are you sure to want to do that?",
-        //     //message: Ext.String.format(message, this.getRecord().get('FormattedID')),
-        //     confirmLabel: 'Convert',
-        //     modal: true,
-        //     listeners: 
-        //         },                //cancel: Ext.emptyFn,
-        //         scope: this
-        //     }
-        // });
-    },    
+    _convertToPortfolioItem: function(){
+        function convertToFeature(record){
+            console.log(record);
+            return record.get('Name');
+        }
+        for(var i =0; i < selectedRecords.length; i++){
+            var name = convertToFeature(selectedRecords[i]);
+            console.log(name);
+        }
+    }    
 });
-
-function _commitConvertToPortfolioItem(){
-    console.log('Made it into commit convert Function');
-}

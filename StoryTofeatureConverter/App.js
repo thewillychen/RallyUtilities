@@ -34,13 +34,13 @@ Ext.define('CustomApp', {
                 var a = this._convertToPortfolioItem();
             }*/
         });
-        this.add({
+/*        this.add({
             xtype: 'rallybutton',
             text: 'Convert all',
             handler: function() { 
                 console.log('converting all to feature'); 
             }
-        });                
+        });*/                
     },
 
     _onSelect: function(rowModel, record, rowIndex, options) {
@@ -94,7 +94,13 @@ Ext.define('CustomApp', {
 
 
     _convertToPortfolioItem: function(){
+        this.record = record;
         function convertToFeature(record){
+            Rally.data.ModelFactory.getModal({
+                type: 'PortfolioItem/Feature',
+                success: this.onModelRetrieved,
+                scope: this
+            });
             console.log(record);
             return record.get('Name');
         }
@@ -102,5 +108,37 @@ Ext.define('CustomApp', {
             var name = convertToFeature(selectedRecords[i]);
             console.log(name);
         }
-    }    
+    },
+
+    onModelRetrieved: function(model){
+        this.model = model;
+        this.createFeature();
+    },
+
+    createFeature: function(){
+        var storyName = this.record.get('Name');
+        var storyDescription = this.record.get('Description');
+        var storyProject = this.record.get('Project');
+        var storyReady = this.record.get('Ready');
+        var storyComponents = this.record.get('Components');
+        var storyFixVersion = this.record.get('FixVersion');
+        var storyJiraID = this.record.get('JiraID');
+
+
+        var newFeature = Ext.create(this.model, {
+            Name: storyName,
+            Description: storyDescription,
+            Project: storyProject,
+            Ready: storyReady,
+            FixVersion = storyFixVersion,
+            JiraID = storyJiraID
+        });
+       /* newFeature.save({
+            callback: function(result, operation) {
+                if(operation.wasSuccessful()) {
+                    console.log 
+                }
+            }            
+        })*/
+    }   
 });

@@ -130,8 +130,8 @@ Ext.define('CustomApp', {
             Description: storyDescription,
             Project: storyProject,
             Ready: storyReady,
-            FixVersion = storyFixVersion,
-            JiraID = storyJiraID
+            FixVersion: storyFixVersion,
+            JiraID: storyJiraID
         });
        /* newFeature.save({
             callback: function(result, operation) {

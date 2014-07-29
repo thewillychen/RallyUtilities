@@ -44,7 +44,6 @@ Ext.define('CustomApp', {
 },
 
 _onSelect: function(rowModel, record, rowIndex, options) {
-
     console.log('onSelect');
     selectedRecords.push(record);
     console.log(record);
@@ -61,7 +60,7 @@ _onDeselect: function(rowModel, record, rowIndex, options) {
 
 _linkToParentEpic: function(){
     this.record = record;
-    function findAndLink(record){
+    function findAndLink(currentRecord){
         var epicID = record.get('Epic');
         var epicStore = Ext.create('Rally.data.wsapi.Store', {
             model: 'PortfolioItem/Feature',
@@ -93,7 +92,8 @@ _linkToParentEpic: function(){
 }
 
 for(var i =0; i < selectedRecords.length; i++){
-    var name = findAndLink(selectedRecords[i]);
+    var currentRecord = selectedRecords[i];
+    var name = findAndLink(currentRecord);
     console.log(name);
 }
     }/*,

@@ -94,18 +94,19 @@ Ext.define('CustomApp', {
 
 
     _convertToPortfolioItem: function(){
-        this.record = record;
-        function convertToFeature(record){
-            Rally.data.ModelFactory.getModal({
+        //this.record = record;
+        function convertToFeature(currentRecord){
+            Rally.data.ModelFactory.getModel({
                 type: 'PortfolioItem/Feature',
                 success: this.onModelRetrieved,
                 scope: this
             });
-            console.log(record);
-            return record.get('Name');
+            console.log(currentRecord);
+            return currentRecord.get('Name');
         }
         for(var i =0; i < selectedRecords.length; i++){
-            var name = convertToFeature(selectedRecords[i]);
+            var currentRecord = selectedRecords[i];
+            var name = convertToFeature(currentRecord);
             console.log(name);
         }
     },
@@ -123,7 +124,7 @@ Ext.define('CustomApp', {
         var storyComponents = this.record.get('Components');
         var storyFixVersion = this.record.get('FixVersion');
         var storyJiraID = this.record.get('JiraID');
-
+        
 
         var newFeature = Ext.create(this.model, {
             Name: storyName,

@@ -30,18 +30,7 @@ Ext.define('CustomApp', {
         listeners: {
             click: this._linkToParentEpic
         }
-/*            handler: function() { 
-                console.log('Converting selected to feature');
-                var a = this._convertToPortfolioItem();
-            }*/
-        });
-/*        this.add({
-            xtype: 'rallybutton',
-            text: 'Convert all',
-            handler: function() { 
-                console.log('converting all to feature'); 
-            }
-        });*/                
+        });      
     },
 
     _onSelect: function(rowModel, record, rowIndex, options) {
@@ -85,7 +74,7 @@ Ext.define('CustomApp', {
         currentRecord.save({
             callback: function(result, operation) {
                 if(operation.wasSuccessful()) {
-                    console.log(result.get('SuccesfulUpdate'));
+                    console.log('SuccesfulUpdate for ' + currentRecord.get('Name'));
                     }
                 }
         });

@@ -1,13 +1,14 @@
 var selectedRecords = [];
+var that;
 Ext.define('CustomApp', {
     extend: 'Rally.app.App',
     componentCls: 'app',
     items:{ html:'<a href="https://help.rallydev.com/apps/2.0rc3/doc/">App SDK 2.0rc3 Docs</a>'},
     launch: function() {
-       // var selectedRecords = [];
-       var grid = this.add({
+        that = this;
+        var grid = this.add({
         xtype: 'rallygrid',
-        columnCfgs: ['FormattedID','Name','JiraID','FixVersion'],
+        columnCfgs: ['FormattedID','Name','JiraID','FixVersion', 'c_EpicTheme'],
         context: this.getContext(),
         enableEditing: false,
         enableBulkEdit:true,
@@ -41,27 +42,24 @@ Ext.define('CustomApp', {
                 console.log('converting all to feature'); 
             }
         });*/                
-},
+    },
 
-_onSelect: function(rowModel, record, rowIndex, options) {
-    console.log('onSelect');
-    selectedRecords.push(record);
-    console.log(record);
-},
+    _onSelect: function(rowModel, record, rowIndex, options) {
+        console.log('onSelect');
+        selectedRecords.push(record);
+        console.log(record);
+    },
 
-_onDeselect: function(rowModel, record, rowIndex, options) {
-    console.log('onDeSelect');
-    var index = selectedRecords.indexOf(record);
-    if(index != -1){
-        selectedRecords.splice(index, 1);
-    }
-    console.log(selectedRecords);
-},
-
-_linkToParentEpic: function(){
-    this.record = record;
-    function findAndLink(currentRecord){
-        var epicID = record.get('Epic');
+    _onDeselect: function(rowModel, record, rowIndex, options) {
+        console.log('onDeSelect');
+        var index = selectedRecords.indexOf(record);
+        if(index != -1){
+            selectedRecords.splice(index, 1);
+        }
+        console.log(selectedRecords);
+    },
+    _findAndLink: function(currentRecord){
+        var epicID = currentRecord.get('c_EpicTheme');
         var epicStore = Ext.create('Rally.data.wsapi.Store', {
             model: 'PortfolioItem/Feature',
             filters: [
@@ -74,36 +72,35 @@ _linkToParentEpic: function(){
         });
 
         epicStore.load({
-            callback: function(records, operation){
-                if(operation.wasSuccessful() && records.getCount() > 0){
-                    var parent = records.getAt(0);
-                    console.log(parent);
-                        //Get some data/id about the parent 
-                        //set record's state of parent to be that parent object
-                        //save record
-                    }
+            callback: function(records, operation, success){
+                that._updateStoryParent(epicStore, currentRecord);
                 }
-            } );
-/*            Rally.data.ModelFactory.getModel({
-            type: 'User Story',
-            success: this._onModelRetrieved,
-            scope: this
-        });*/
-}
-
-for(var i =0; i < selectedRecords.length; i++){
-    var currentRecord = selectedRecords[i];
-    var name = findAndLink(currentRecord);
-    console.log(name);
-}
-    }/*,
-
-    _onModelRetrieved: function(model){
-        this.model = model;
-        this._updateRecord(model);
+        });
     },
 
-    _updateRecord: function(model){
+    _updateStoryParent: function(epicStore, currentRecord){
+        var parent = epicStore.getAt(0);
+        console.log(parent);
+        currentRecord.set('PortfolioItem', parent.get('_ref'));
+        currentRecord.save({
+            callback: function(result, operation) {
+                if(operation.wasSuccessful()) {
+                    console.log(result.get('SuccesfulUpdate'));
+                    }
+                }
+        });
+    },
 
-    }*/
+
+    _check: function(epicStore){
+        console.log(epicStore);
+        console.log(epicStore.getAt(0));
+    },
+
+    _linkToParentEpic: function(){
+        for(var i =0; i < selectedRecords.length; i++){
+            var currentRecord = selectedRecords[i];
+            that._findAndLink(currentRecord);
+        }
+    }
 });

@@ -1,10 +1,12 @@
 var selectedRecords = [];
+var that;
 Ext.define('CustomApp', {
     extend: 'Rally.app.App',
     componentCls: 'app',
     items:{ html:'<a href="https://help.rallydev.com/apps/2.0rc3/doc/">App SDK 2.0rc3 Docs</a>'},
     launch: function() {
-       // var selectedRecords = [];
+        that = this;
+        var current;
         var grid = this.add({
             xtype: 'rallygrid',
             columnCfgs: ['FormattedID','Name','JiraID','FixVersion'],
@@ -17,17 +19,16 @@ Ext.define('CustomApp', {
             listeners: {
                 select: this._onSelect,
                 deselect: this._onDeselect,
-                load: function(){
+/*                load: function(){
                     var records = grid.getStore();
-                    console.log(records.count());
-                }
+                }*/
             }
         });
         this.add({
             xtype: 'rallybutton',
             text: 'Convert to Feature',
             listeners: {
-                click: this._convertToPortfolioItem
+                click: this._convertToFeature
             }
 /*            handler: function() { 
                 console.log('Converting selected to feature');
@@ -44,10 +45,9 @@ Ext.define('CustomApp', {
     },
 
     _onSelect: function(rowModel, record, rowIndex, options) {
-
         console.log('onSelect');
         selectedRecords.push(record);
-        console.log(record);
+        console.log(record.get('Name'));
     },
 
     _onDeselect: function(rowModel, record, rowIndex, options) {
@@ -60,7 +60,7 @@ Ext.define('CustomApp', {
     },
 
     _confirmConversion: function(){
-        var that = this;
+        /*var that = this;*/
         console.log(that);
         console.log('clicked');
         console.log('In confirm conversion');
@@ -92,54 +92,59 @@ Ext.define('CustomApp', {
         }
     },
 
-
-    _convertToPortfolioItem: function(){
-        //this.record = record;
-        function convertToFeature(currentRecord){
-            Rally.data.ModelFactory.getModel({
-                type: 'PortfolioItem/Feature',
-                success: this.onModelRetrieved,
-                scope: this
-            });
-            console.log(currentRecord);
-            return currentRecord.get('Name');
-        }
-        for(var i =0; i < selectedRecords.length; i++){
+/*    _convertToPortfolioItem: function(){
+        console.log('Entering Convert To portfolioItem');
             var currentRecord = selectedRecords[i];
-            var name = convertToFeature(currentRecord);
-            console.log(name);
-        }
+            that.current = currentRecord;
+            console.log(currentRecord.get('Name'));
+            that._convertToFeature(currentRecord);
+    },*/
+
+    _convertToFeature: function(){
+        console.log('in convertToFeature');
+        Rally.data.ModelFactory.getModel({
+            type: 'PortfolioItem/Feature',
+            success: that.onModelRetrieved,
+            scope: this
+        });
     },
 
     onModelRetrieved: function(model){
-        this.model = model;
-        this.createFeature();
+        console.log('in on model retrieved');
+        that.model = model;
+        that.createFeature();
     },
 
     createFeature: function(){
-        var storyName = this.record.get('Name');
-        var storyDescription = this.record.get('Description');
-        var storyProject = this.record.get('Project');
-        var storyReady = this.record.get('Ready');
-        var storyComponents = this.record.get('Components');
-        var storyFixVersion = this.record.get('FixVersion');
-        var storyJiraID = this.record.get('JiraID');
-        
+        for(var i =0; i < selectedRecords.length; i++){
+            var current = selectedRecords[i];
+            console.log('In create feature');
+            var storyName = current.get('Name');
+            var storyDescription = current.get('Description');
+            var storyProject = current.get('Project');
+            var storyReady = current.get('Ready');
+            var storyComponents = current.get('Components');
+            var storyFixVersion = current.get('FixVersion');
+            var storyJiraID = current.get('JiraID');
 
-        var newFeature = Ext.create(this.model, {
-            Name: storyName,
-            Description: storyDescription,
-            Project: storyProject,
-            Ready: storyReady,
-            FixVersion: storyFixVersion,
-            JiraID: storyJiraID
-        });
-       /* newFeature.save({
-            callback: function(result, operation) {
-                if(operation.wasSuccessful()) {
-                    console.log 
-                }
-            }            
-        })*/
+
+            var newFeature = Ext.create(this.model, {
+                Name: storyName,
+                Description: storyDescription,
+                Project: storyProject,
+                Ready: storyReady,
+                FixVersion: storyFixVersion,
+                JiraID: storyJiraID
+            });
+
+            console.log(newFeature);
+            newFeature.save({
+                callback: function(result, operation) {
+                    if(operation.wasSuccessful()) {
+                        console.log(result.get('Name'));
+                    }
+                }            
+            });
+        }
     }   
 });

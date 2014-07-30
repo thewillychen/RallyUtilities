@@ -197,3 +197,51 @@ Ext.define('CustomApp', {
         }
     }
 });
+
+
+
+
+
+working test case for time 
+var selectedRecords = [];
+var that;
+Ext.define('CustomApp', {
+    extend: 'Rally.app.App',
+    componentCls: 'app',
+    items:{ html:'<a href="https://help.rallydev.com/apps/2.0rc3/doc/">App SDK 2.0rc3 Docs</a>'},
+    launch: function() {
+        that = this;
+       this.test1();
+    },
+    test1: function(){
+        var initiativeStore = Ext.create('Rally.data.wsapi.Store', {
+            model: 'PortfolioItem/Initiative',
+            autoload: false
+        });
+
+        initiativeStore.load({
+            callback: function(records, operation, success){
+                that.checkTime(initiativeStore);
+                }
+        });
+    },
+    checkTime: function(initiativeStore){
+        console.log(initiativeStore);
+        var dt = new Date();
+        var monthYear = 'June 2014';
+        dt = Ext.Date.parse(monthYear, 'F Y');
+        console.log(dt);
+        console.log('initiatves');
+        for(var i = 0; i < initiativeStore.getCount(); i++){
+            var currentInitiative = initiativeStore.getAt(i);
+            var startDate = currentInitiative.get('PlannedStartDate');
+            var endDate = currentInitiative.get('PlannedEndDate');
+/*            console.log(startDate);
+            console.log(endDate);*/
+            if(Ext.Date.between(dt, startDate, endDate)){
+                console.log(true);
+                console.log(currentInitiative);
+            }
+        }
+    }
+});

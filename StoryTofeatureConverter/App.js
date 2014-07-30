@@ -123,9 +123,9 @@ Ext.define('CustomApp', {
             var storyDescription = current.get('Description');
             var storyProject = current.get('Project');
             var storyReady = current.get('Ready');
-            var storyComponents = current.get('Components');
-            var storyFixVersion = current.get('FixVersion');
-            var storyJiraID = current.get('JiraID');
+            var storyComponents = current.get('c_Components');
+            var storyFixVersion = current.get('c_FixVersion');
+            var storyJiraID = current.get('c_JiraID');
 
 
             var newFeature = Ext.create(this.model, {
@@ -133,8 +133,9 @@ Ext.define('CustomApp', {
                 Description: storyDescription,
                 Project: storyProject,
                 Ready: storyReady,
-                FixVersion: storyFixVersion,
-                JiraID: storyJiraID
+                c_Components: storyComponents,
+                c_FixVersion: storyFixVersion,
+                c_JiraID: storyJiraID
             });
 
             console.log(newFeature);

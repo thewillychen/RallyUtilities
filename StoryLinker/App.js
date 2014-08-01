@@ -152,7 +152,11 @@ Ext.define('CustomApp', {
     _findAndLink: function(currentRecord){
         var initiativeStore = Ext.create('Rally.data.wsapi.Store', {
             model: 'PortfolioItem/Initiative',
-            autoload: false
+/*            filters: [
+                {
+                    //could potentially change this to filter based on the time without having to do the overall loop? will try later for higher performance after wokrign
+                }
+            ]*/
         });
 
         initiativeStore.load({
@@ -171,11 +175,16 @@ Ext.define('CustomApp', {
             var currentInitiative = initiativeStore[i];
             var startDate = currentInitiative.get('PlannedStartDate');
             var endDate = currentInitiative.get('PlannedEndDate');
-            if(Ext.Date.between(dt, startDate, endDate)){
+            if(Ext.Date.between(dt, startDate, endDate) && that._checkInitiative(currentInitiative)){
                 that._updateEpic(currentInitiative, currentRecord);
             }
 
         }
+    },
+
+    _checkInitiative: function(currentInitiative){
+        var name = currentInitiative.get('Name');
+        return (name.indexOf('Q or release or whatever. FIll in next time I look at rally') > -1);
     },
 
     _updateEpic: function(currentInitiative, currentRecord){
@@ -187,8 +196,7 @@ Ext.define('CustomApp', {
                     }
                 }
         });
-    }
-
+    },
 
     _linkToParentEpic: function(){
         for(var i =0; i < selectedRecords.length; i++){

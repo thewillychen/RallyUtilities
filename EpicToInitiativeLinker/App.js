@@ -7,29 +7,29 @@ Ext.define('CustomApp', {
     launch: function() {
         that = this;
         var grid = this.add({
-        xtype: 'rallygrid',
-        columnCfgs: ['FormattedID','Name','JiraID','FixVersion', 'c_EpicTheme'],
-        context: this.getContext(),
-        enableEditing: false,
-        enableBulkEdit:true,
-        storeConfig: {
-            model: 'PortfolioItem/Feature'
-        },
-        listeners: {
-            select: this._onSelect,
-            deselect: this._onDeselect,
-            load: function(){
-                var records = grid.getStore();
-                console.log(records.count());
+            xtype: 'rallygrid',
+            columnCfgs: ['FormattedID','Name','JiraID','FixVersion', 'c_EpicTheme', 'c_Components'],
+            context: this.getContext(),
+            enableEditing: false,
+            enableBulkEdit:true,
+            storeConfig: {
+                model: 'PortfolioItem/Feature'
+            },
+            listeners: {
+                select: this._onSelect,
+                deselect: this._onDeselect,
+                load: function(){
+                    var records = grid.getStore();
+                    console.log(records.count());
+                }
             }
-        }
-    });
-       this.add({
-        xtype: 'rallybutton',
-        text: 'Link to Parent Epic',
-        listeners: {
-            click: this._linkToParentEpic
-        }
+        });
+        this.add({
+            xtype: 'rallybutton',
+            text: 'Link to Parent Initiative',
+            listeners: {
+                click: this._linkToParentInitiative
+            }
         });      
     },
 
@@ -54,35 +54,43 @@ Ext.define('CustomApp', {
                 {
                     //could potentially change this to filter based on the time without having to do the overall loop? will try later for higher performance after wokrign
                 }
-            ]*/
-        });
+                ]*/
+            });
 
         initiativeStore.load({
             callback: function(records, operation, success){
+                console.log(initiativeStore);
                 that._updateFeature(initiativeStore, currentRecord);
-                }
+            }
         });
     },
 
     _updateFeature: function(initiativeStore, currentRecord){
         var dt = new Date();
         var monthYear = currentRecord.get('c_FixVersion');
-        dt = Ext.Date.parse(monthYear, 'F Y');
+        dt = Ext.Date.parse(monthYear, 'M Y');
+        if(!dt){
+            dt = Ext.Date.parse(monthYear,'F Y');
+        }
+        console.log(dt);
 
         for(var i = 0; i < initiativeStore.getCount(); i++){
-            var currentInitiative = initiativeStore[i];
+            var currentInitiative = initiativeStore.getAt(i);
+            console.log(currentInitiative);
             var startDate = currentInitiative.get('PlannedStartDate');
             var endDate = currentInitiative.get('PlannedEndDate');
-            if(Ext.Date.between(dt, startDate, endDate) && that._checkInitiative(currentInitiative)){
+            if(Ext.Date.between(dt, startDate, endDate) && that._checkInitiative(currentInitiative,currentRecord)){
+                console.log('Matched feature to initiative: ' + currentInitiative.get('Name'));
                 that._updateEpic(currentInitiative, currentRecord);
             }
 
         }
     },
 
-    _checkInitiative: function(currentInitiative){
+    _checkInitiative: function(currentInitiative, currentRecord){
         var name = currentInitiative.get('Name');
-        return (name.indexOf('Q or release or whatever. FIll in next time I look at rally') > -1);
+        var components = currentRecord.get('c_Components');
+        return (name.indexOf(components) > -1 || name.indexOf(currentInitiative.get('FormattedID')));
     },
 
     _updateEpic: function(currentInitiative, currentRecord){
@@ -91,12 +99,12 @@ Ext.define('CustomApp', {
             callback: function(result, operation) {
                 if(operation.wasSuccessful()) {
                     console.log('SuccesfulUpdate for ' + currentRecord.get('Name'));
-                    }
                 }
+            }
         });
     },
 
-    _linkToParentEpic: function(){
+    _linkToParentInitiative: function(){
         for(var i =0; i < selectedRecords.length; i++){
             var currentRecord = selectedRecords[i];
             that._findAndLink(currentRecord);

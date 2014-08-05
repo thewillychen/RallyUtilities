@@ -7,29 +7,29 @@ Ext.define('CustomApp', {
     launch: function() {
         that = this;
         var grid = this.add({
-        xtype: 'rallygrid',
-        columnCfgs: ['FormattedID','Name','JiraID', 'c_EpicTheme'],
-        context: this.getContext(),
-        enableEditing: false,
-        enableBulkEdit:true,
-        storeConfig: {
-            model: 'userstory'
-        },
-        listeners: {
-            select: this._onSelect,
-            deselect: this._onDeselect,
-            load: function(){
-                var records = grid.getStore();
-                console.log(records.count());
+            xtype: 'rallygrid',
+            columnCfgs: ['FormattedID','Name','JiraID', 'c_EpicTheme'],
+            context: this.getContext(),
+            enableEditing: false,
+            enableBulkEdit:true,
+            storeConfig: {
+                model: 'userstory'
+            },
+            listeners: {
+                select: this._onSelect,
+                deselect: this._onDeselect,
+                load: function(){
+                    var records = grid.getStore();
+                    console.log(records.count());
+                }
             }
-        }
-    });
-       this.add({
-        xtype: 'rallybutton',
-        text: 'Link to Parent Epic',
-        listeners: {
-            click: this._linkToParentEpic
-        }
+        });
+        this.add({
+            xtype: 'rallybutton',
+            text: 'Link to Parent Epic',
+            listeners: {
+                click: this._linkToParentEpic
+            }
         });      
     },
 
@@ -63,7 +63,7 @@ Ext.define('CustomApp', {
         epicStore.load({
             callback: function(records, operation, success){
                 that._updateStoryParent(epicStore, currentRecord);
-                }
+            }
         });
     },
 
@@ -75,8 +75,8 @@ Ext.define('CustomApp', {
             callback: function(result, operation) {
                 if(operation.wasSuccessful()) {
                     console.log('SuccesfulUpdate for ' + currentRecord.get('Name'));
-                    }
                 }
+            }
         });
     },
 

@@ -9,7 +9,7 @@ Ext.define('CustomApp', {
         var current;
         var grid = this.add({
             xtype: 'rallygrid',
-            columnCfgs: ['FormattedID','Name','JiraID','FixVersion'],
+            columnCfgs: ['FormattedID','Name','JiraID','FixVersion', 'Components'],
             context: this.getContext(),
             enableEditing: false,
             enableBulkEdit:true,
@@ -18,10 +18,7 @@ Ext.define('CustomApp', {
             },
             listeners: {
                 select: this._onSelect,
-                deselect: this._onDeselect,
-/*                load: function(){
-                    var records = grid.getStore();
-                }*/
+                deselect: this._onDeselect
             }
         });
         this.add({
@@ -30,24 +27,13 @@ Ext.define('CustomApp', {
             listeners: {
                 click: this._convertToFeature
             }
-/*            handler: function() { 
-                console.log('Converting selected to feature');
-                var a = this._convertToPortfolioItem();
-            }*/
-        });
-/*        this.add({
-            xtype: 'rallybutton',
-            text: 'Convert all',
-            handler: function() { 
-                console.log('converting all to feature'); 
-            }
-        });*/                
+        });           
     },
 
     _onSelect: function(rowModel, record, rowIndex, options) {
         console.log('onSelect');
         selectedRecords.push(record);
-        console.log(record.get('Name'));
+        console.log(record);
     },
 
     _onDeselect: function(rowModel, record, rowIndex, options) {
@@ -60,13 +46,12 @@ Ext.define('CustomApp', {
     },
 
     _confirmConversion: function(){
-        /*var that = this;*/
         console.log(that);
         console.log('clicked');
         console.log('In confirm conversion');
         if(selectedRecords.length === 0){
             console.log('In confirmation');
-             Ext.create('Rally.ui.dialog.ConfirmDialog', {
+            Ext.create('Rally.ui.dialog.ConfirmDialog', {
                 title: "Confirm Portfolio item Conversion",
                 message: 'Are you sure?',
                 confirmLabel: 'Yes',
@@ -91,15 +76,7 @@ Ext.define('CustomApp', {
             });
         }
     },
-
-/*    _convertToPortfolioItem: function(){
-        console.log('Entering Convert To portfolioItem');
-            var currentRecord = selectedRecords[i];
-            that.current = currentRecord;
-            console.log(currentRecord.get('Name'));
-            that._convertToFeature(currentRecord);
-    },*/
-
+    
     _convertToFeature: function(){
         console.log('in convertToFeature');
         Rally.data.ModelFactory.getModel({
@@ -123,10 +100,10 @@ Ext.define('CustomApp', {
             var storyDescription = current.get('Description');
             var storyProject = current.get('Project');
             var storyReady = current.get('Ready');
-            var storyComponents = current.get('c_Components');
+            var storyComponents = current.get('Components');
             var storyFixVersion = current.get('c_FixVersion');
             var storyJiraID = current.get('c_JiraID');
-
+            console.log('compoennts: ' + storyComponents);
 
             var newFeature = Ext.create(this.model, {
                 Name: storyName,

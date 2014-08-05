@@ -1,5 +1,7 @@
-//Author: Willy Chen
-//Email: Willy.Chen@duke.edu
+/*Author: Willy Chen
+Email: Willy.Chen@duke.edu
+Converts user story's brought in from Jira to Features in the same Rally Project
+Dependencies: Project or workspace has components, jiraid, jiraLink, fixversion, and components fields visible for portfolio items and for userstories in the designated project*/
 var selectedRecords = [];
 var that;
 Ext.define('CustomApp', {
@@ -10,7 +12,7 @@ Ext.define('CustomApp', {
         that = this;
         var grid = this.add({
             xtype: 'rallygrid',
-            columnCfgs: ['FormattedID','Name','JiraID','FixVersion', 'Components'],
+            columnCfgs: ['FormattedID','Name','JiraID','JiraLink', 'FixVersion', 'Components'],
             context: this.getContext(),
             enableEditing: false,
             enableBulkEdit:true,
@@ -34,7 +36,7 @@ Ext.define('CustomApp', {
     _onSelect: function(rowModel, record, rowIndex, options) {
         console.log('onSelect');
         selectedRecords.push(record);
-        console.log(record.get('Name'));
+        console.log(record);
     },
 
     _onDeselect: function(rowModel, record, rowIndex, options) {
@@ -49,7 +51,6 @@ Ext.define('CustomApp', {
     _confirmConversion: function(){
         console.log('In confirm conversion');
         if(selectedRecords.length > 0){
-            console.log('In confirmation');
             Ext.create('Rally.ui.dialog.ConfirmDialog', {
                 title: "Confirm Conversion to Feature",
                 message: 'Are you sure?',
@@ -97,6 +98,7 @@ Ext.define('CustomApp', {
             var storyComponents = current.get('Components');
             var storyFixVersion = current.get('c_FixVersion');
             var storyJiraID = current.get('c_JiraID');
+            //var storyJiraLink = current.get('c_JiraLink');
 
             var newFeature = Ext.create(this.model, {
                 Name: storyName,
@@ -106,6 +108,7 @@ Ext.define('CustomApp', {
                 c_Components: storyComponents,
                 c_FixVersion: storyFixVersion,
                 c_JiraID: storyJiraID
+                //c_JiraLink: storyJiraLink
             });
 
             console.log(newFeature);
@@ -113,6 +116,9 @@ Ext.define('CustomApp', {
                 callback: function(result, operation) {
                     if(operation.wasSuccessful()) {
                         console.log(result.get('Name'));
+                    }
+                    else{
+                        console.log('failure');
                     }
                 }            
             });

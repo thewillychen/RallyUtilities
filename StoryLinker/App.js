@@ -75,34 +75,43 @@ Ext.define('CustomApp', {
     _linkStories: function(){
         for(var i =0; i < selectedRecords.length; i++){
             var currentRecord = selectedRecords[i];
-            that._findParentFeature(currentRecord);
+            var epicID = currentRecord.get('c_EpicTheme');
+            var currentParent = currentRecord.get('PortfolioItem');
+            if(!currentParent && epicID){           
+                that._findParentFeature(currentRecord, epicID);
+            }
+            else if(epicID && epicID !== currentParent.c_JiraID){
+                console.log('Story has incorrect parent');
+                that._findParentFeature(currentRecord, epicID);
+            }
+            else{
+                console.log('Story has no epicID or has the correct parent already');
+            }
         }
     },
 
-    _findParentFeature: function(currentRecord){
-        var epicID = currentRecord.get('c_EpicTheme');
-        var currentParent = currentRecord.get('PortfolioItem');
-        if(!currentParent && epicID !== currentParent.get('c_JiraID')){
-            var epicStore = Ext.create('Rally.data.wsapi.Store', {
-                model: 'PortfolioItem/Feature',
-                filters: [
-                    {
-                        property: 'JiraID',
-                        operator: '=',
-                        value: epicID
-                    }
-                ]
-            });
+    _findParentFeature: function(currentRecord,epicID){
+        var epicStore = Ext.create('Rally.data.wsapi.Store', {
+            model: 'PortfolioItem/Feature',
+            filters: [
+            {
+                property: 'JiraID',
+                operator: '=',
+                value: epicID
+            }
+            ]
+        });
 
-            epicStore.load({
-                callback: function(records, operation, success){
+        epicStore.load({
+            callback: function(records, operation, success){
+                if(epicStore.getCount() !== 0){
                     that._linkStoryToParent(epicStore, currentRecord);
                 }
-            });
-        }
-        else{
-            console.log('Has correct parent already');
-        }
+                else{
+                    console.log('Parent not found');
+                }
+            }
+        });
     },
 
     _linkStoryToParent: function(epicStore, currentRecord){

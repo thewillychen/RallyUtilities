@@ -120,7 +120,7 @@ Ext.define('CustomApp', {
     _checkInitiative: function(currentInitiative, currentRecord){
         var name = currentInitiative.get('Name');
         var components = currentRecord.get('c_Components');
-        return (name.indexOf(components) > -1 || components.indexOf(currentInitiative.get('FormattedID')) > -1);
+        return (name.indexOf(components) > -1 || components.indexOf(currentInitiative.get('FormattedID')) > -1) || components.indexOf(currentInitiative.get('Parent').FormattedID) > -1;
     },
 
     _linkFeatureToParent: function(currentInitiative, currentRecord){

@@ -1,3 +1,7 @@
+/*Author: Willy Chen
+Email: Willy.Chen@duke.edu
+Links imported user stories from Jira to their parent Epic/Feature in Rally
+Dependencies: The imported user story has a epic/theme value and this specified epic/theme from jira is a Feature with its jiraID stored in the jiraID custom field in Rally.*/
 var selectedRecords = [];
 var that;
 Ext.define('CustomApp', {
@@ -17,18 +21,14 @@ Ext.define('CustomApp', {
             },
             listeners: {
                 select: this._onSelect,
-                deselect: this._onDeselect,
-                load: function(){
-                    var records = grid.getStore();
-                    console.log(records.count());
-                }
+                deselect: this._onDeselect
             }
         });
         this.add({
             xtype: 'rallybutton',
             text: 'Link to Parent Epic',
             listeners: {
-                click: this._linkToParentEpic
+                click: this._confirmLink
             }
         });      
     },
@@ -47,7 +47,39 @@ Ext.define('CustomApp', {
         }
         console.log(selectedRecords);
     },
-    _findAndLink: function(currentRecord){
+
+    _confirmLink: function(){
+        console.log('In confirm Link');
+        if(selectedRecords.length > 0){
+            Ext.create('Rally.ui.dialog.ConfirmDialog', {
+                title: "Confirm link to parent feature",
+                message: 'Are you sure?',
+                confirmLabel: 'Yes',
+                modal: true,
+                listeners: {
+                    confirm: that._linkStories
+                }
+            });           
+        }
+        else{
+            console.log('in else');
+            Ext.create('Rally.ui.dialog.ConfirmDialog', {
+                title: "Confirm link to parent feature",
+                message: 'Please select at least one user story to clink',
+                confirmLabel: 'Okay',
+                modal: true,
+            });
+        }
+    },
+
+    _linkStories: function(){
+        for(var i =0; i < selectedRecords.length; i++){
+            var currentRecord = selectedRecords[i];
+            that._findParentFeature(currentRecord);
+        }
+    },
+
+    _findParentFeature: function(currentRecord){
         var epicID = currentRecord.get('c_EpicTheme');
         var epicStore = Ext.create('Rally.data.wsapi.Store', {
             model: 'PortfolioItem/Feature',
@@ -62,12 +94,12 @@ Ext.define('CustomApp', {
 
         epicStore.load({
             callback: function(records, operation, success){
-                that._updateStoryParent(epicStore, currentRecord);
+                that._linkStoryToParent(epicStore, currentRecord);
             }
         });
     },
 
-    _updateStoryParent: function(epicStore, currentRecord){
+    _linkStoryToParent: function(epicStore, currentRecord){
         var parent = epicStore.getAt(0);
         console.log(parent);
         currentRecord.set('PortfolioItem', parent.get('_ref'));
@@ -78,18 +110,5 @@ Ext.define('CustomApp', {
                 }
             }
         });
-    },
-
-
-    _check: function(epicStore){
-        console.log(epicStore);
-        console.log(epicStore.getAt(0));
-    },
-
-    _linkToParentEpic: function(){
-        for(var i =0; i < selectedRecords.length; i++){
-            var currentRecord = selectedRecords[i];
-            that._findAndLink(currentRecord);
-        }
     }
 });

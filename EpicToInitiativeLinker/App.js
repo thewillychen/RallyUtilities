@@ -1,3 +1,8 @@
+/*Author: Willy Chen
+Email: Willy.Chen@duke.edu
+Links features created from imported jira epics to their parent initaitves
+Dependencies: The initiatives are for each quarter of the year and have appropriate planned start date amd planned end date values. 
+The feature has to have a components field value corresponding to its theme (whether full name or rally id). FixVersion should be a format of Month Year: August 2014 or Aug 2014.*/
 var selectedRecords = [];
 var that;
 Ext.define('CustomApp', {
@@ -28,7 +33,7 @@ Ext.define('CustomApp', {
             xtype: 'rallybutton',
             text: 'Link to Parent Initiative',
             listeners: {
-                click: this._linkToParentInitiative
+                click: this._confirmLink
             }
         });      
     },
@@ -47,25 +52,52 @@ Ext.define('CustomApp', {
         }
         console.log(selectedRecords);
     },
-    _findAndLink: function(currentRecord){
+
+    _confirmLink: function(){
+        console.log('In confirm Link');
+        if(selectedRecords.length > 0){
+            Ext.create('Rally.ui.dialog.ConfirmDialog', {
+                title: "Confirm link to parent initiative",
+                message: 'Are you sure?',
+                confirmLabel: 'Yes',
+                modal: true,
+                listeners: {
+                    confirm: that._linkFeatures
+                }
+            });           
+        }
+        else{
+            console.log('in else');
+            Ext.create('Rally.ui.dialog.ConfirmDialog', {
+                title: "Confirm link to parent initiative",
+                message: 'Please select at least one feature to clink',
+                confirmLabel: 'Okay',
+                modal: true,
+            });
+        }
+    },
+
+    _linkFeatures: function(){
+        for(var i =0; i < selectedRecords.length; i++){
+            var currentRecord = selectedRecords[i];
+            that._getInitiatives(currentRecord);
+        }
+    },    
+
+    _getInitiatives: function(currentRecord){
         var initiativeStore = Ext.create('Rally.data.wsapi.Store', {
             model: 'PortfolioItem/Initiative',
-/*            filters: [
-                {
-                    //could potentially change this to filter based on the time without having to do the overall loop? will try later for higher performance after wokrign
-                }
-                ]*/
             });
 
         initiativeStore.load({
             callback: function(records, operation, success){
                 console.log(initiativeStore);
-                that._updateFeature(initiativeStore, currentRecord);
+                that._findParentInitiative(initiativeStore, currentRecord);
             }
         });
     },
 
-    _updateFeature: function(initiativeStore, currentRecord){
+    _findParentInitiative: function(initiativeStore, currentRecord){
         var dt = new Date();
         var monthYear = currentRecord.get('c_FixVersion');
         dt = Ext.Date.parse(monthYear, 'M Y');
@@ -81,7 +113,7 @@ Ext.define('CustomApp', {
             var endDate = currentInitiative.get('PlannedEndDate');
             if(Ext.Date.between(dt, startDate, endDate) && that._checkInitiative(currentInitiative,currentRecord)){
                 console.log('Matched feature to initiative: ' + currentInitiative.get('Name'));
-                that._updateEpic(currentInitiative, currentRecord);
+                that._linkFeatureToParent(currentInitiative, currentRecord);
             }
 
         }
@@ -93,7 +125,7 @@ Ext.define('CustomApp', {
         return (name.indexOf(components) > -1 || name.indexOf(currentInitiative.get('FormattedID')));
     },
 
-    _updateEpic: function(currentInitiative, currentRecord){
+    _linkFeatureToParent: function(currentInitiative, currentRecord){
         currentRecord.set('Parent', currentInitiative.get('_ref'));
         currentRecord.save({
             callback: function(result, operation) {
@@ -102,12 +134,5 @@ Ext.define('CustomApp', {
                 }
             }
         });
-    },
-
-    _linkToParentInitiative: function(){
-        for(var i =0; i < selectedRecords.length; i++){
-            var currentRecord = selectedRecords[i];
-            that._findAndLink(currentRecord);
-        }
     }
 });

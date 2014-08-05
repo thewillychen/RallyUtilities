@@ -12,7 +12,7 @@ Ext.define('CustomApp', {
         that = this;
         var grid = this.add({
             xtype: 'rallygrid',
-            columnCfgs: ['FormattedID','Name','JiraID', 'c_EpicTheme'],
+            columnCfgs: ['FormattedID','Name','JiraID', 'c_EpicTheme', 'PortfolioItem'],
             context: this.getContext(),
             enableEditing: false,
             enableBulkEdit:true,
@@ -81,22 +81,28 @@ Ext.define('CustomApp', {
 
     _findParentFeature: function(currentRecord){
         var epicID = currentRecord.get('c_EpicTheme');
-        var epicStore = Ext.create('Rally.data.wsapi.Store', {
-            model: 'PortfolioItem/Feature',
-            filters: [
-            {
-                property: 'JiraID',
-                operator: '=',
-                value: epicID
-            }
-            ]
-        });
+        var currentParent = currentRecord.get('PortfolioItem');
+        if(!currentParent && epicID !== currentParent.get('c_JiraID')){
+            var epicStore = Ext.create('Rally.data.wsapi.Store', {
+                model: 'PortfolioItem/Feature',
+                filters: [
+                    {
+                        property: 'JiraID',
+                        operator: '=',
+                        value: epicID
+                    }
+                ]
+            });
 
-        epicStore.load({
-            callback: function(records, operation, success){
-                that._linkStoryToParent(epicStore, currentRecord);
-            }
-        });
+            epicStore.load({
+                callback: function(records, operation, success){
+                    that._linkStoryToParent(epicStore, currentRecord);
+                }
+            });
+        }
+        else{
+            console.log('Has correct parent already');
+        }
     },
 
     _linkStoryToParent: function(epicStore, currentRecord){

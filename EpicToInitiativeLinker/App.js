@@ -2,7 +2,8 @@
 Email: Willy.Chen@duke.edu
 Links features created from imported jira epics to their parent initaitves
 Dependencies: The initiatives are for each quarter of the year and have appropriate planned start date amd planned end date values. 
-The feature has to have a components field value corresponding to its theme (whether full name or rally id). FixVersion should be a format of Month Year: August 2014 or Aug 2014.*/
+The feature has to have a components field value corresponding to its theme (whether full name or rally id). FixVersion should be a format of Month Year: August 2014 or Aug 2014.
+Behavior: All selected epics will be attempted to be linked to the correct parent, whether or not they already have a parent*/
 var selectedRecords = [];
 var that;
 Ext.define('CustomApp', {
@@ -13,7 +14,7 @@ Ext.define('CustomApp', {
         that = this;
         var grid = this.add({
             xtype: 'rallygrid',
-            columnCfgs: ['FormattedID','Name','JiraID','FixVersion', 'c_EpicTheme', 'c_Components'],
+            columnCfgs: ['FormattedID','Name','JiraID','FixVersion', 'c_EpicTheme', 'c_Components', 'Parent'],
             context: this.getContext(),
             enableEditing: false,
             enableBulkEdit:true,
@@ -87,11 +88,10 @@ Ext.define('CustomApp', {
     _getInitiatives: function(currentRecord){
         var initiativeStore = Ext.create('Rally.data.wsapi.Store', {
             model: 'PortfolioItem/Initiative',
-            });
+        });
 
         initiativeStore.load({
             callback: function(records, operation, success){
-                console.log(initiativeStore);
                 that._findParentInitiative(initiativeStore, currentRecord);
             }
         });
@@ -108,21 +108,19 @@ Ext.define('CustomApp', {
 
         for(var i = 0; i < initiativeStore.getCount(); i++){
             var currentInitiative = initiativeStore.getAt(i);
-            console.log(currentInitiative);
             var startDate = currentInitiative.get('PlannedStartDate');
             var endDate = currentInitiative.get('PlannedEndDate');
             if(Ext.Date.between(dt, startDate, endDate) && that._checkInitiative(currentInitiative,currentRecord)){
                 console.log('Matched feature to initiative: ' + currentInitiative.get('Name'));
                 that._linkFeatureToParent(currentInitiative, currentRecord);
             }
-
         }
     },
 
     _checkInitiative: function(currentInitiative, currentRecord){
         var name = currentInitiative.get('Name');
         var components = currentRecord.get('c_Components');
-        return (name.indexOf(components) > -1 || name.indexOf(currentInitiative.get('FormattedID')));
+        return (name.indexOf(components) > -1 || components.indexOf(currentInitiative.get('FormattedID')) > -1);
     },
 
     _linkFeatureToParent: function(currentInitiative, currentRecord){
@@ -130,7 +128,7 @@ Ext.define('CustomApp', {
         currentRecord.save({
             callback: function(result, operation) {
                 if(operation.wasSuccessful()) {
-                    console.log('SuccesfulUpdate for ' + currentRecord.get('Name'));
+                    console.log('Succesful Update for ' + currentRecord.get('Name'));
                 }
             }
         });

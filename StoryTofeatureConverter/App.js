@@ -1,7 +1,8 @@
 /*Author: Willy Chen
 Email: Willy.Chen@duke.edu
 Converts user story's brought in from Jira to Features in the same Rally Project
-Dependencies: Project or workspace has components, jiraid, jiraLink, fixversion, and components fields visible for portfolio items and for userstories in the designated project*/
+Dependencies: Project or workspace has components, jiraid, jiraLink, fixversion, and components fields visible for portfolio items and for userstories in the designated project. 
+The boolean field isConverted should also be present to avoid duplication*/
 var selectedRecords = [];
 var that;
 Ext.define('CustomApp', {
@@ -12,7 +13,7 @@ Ext.define('CustomApp', {
         that = this;
         var grid = this.add({
             xtype: 'rallygrid',
-            columnCfgs: ['FormattedID','Name','JiraID','JiraLink', 'FixVersion', 'Components'],
+            columnCfgs: ['FormattedID','Name','JiraID','JiraLink', 'FixVersion', 'Components', 'isConverted'],
             context: this.getContext(),
             enableEditing: false,
             enableBulkEdit:true,
@@ -111,17 +112,31 @@ Ext.define('CustomApp', {
                 //c_JiraLink: storyJiraLink
             });
 
-            console.log(newFeature);
-            newFeature.save({
-                callback: function(result, operation) {
-                    if(operation.wasSuccessful()) {
-                        console.log(result.get('Name'));
-                    }
-                    else{
-                        console.log('failure');
-                    }
-                }            
-            });
+            if(!current.get('c_isConverted')){
+                console.log(newFeature);
+                newFeature.save({
+                    callback: function(result, operation) {
+                        if(operation.wasSuccessful()) {
+                            console.log(result.get('Name'));
+                            that._setConverted(current);
+                        }
+                        else{
+                            console.log('failure');
+                        }
+                    }            
+                });
+            }
         }
-    }   
+    },
+    
+    _setConverted: function(currentRecord){
+        currentRecord.set('c_isConverted', true);
+        currentRecord.save({
+            callback: function(result, operation) {
+                if(operation.wasSuccessful()) {
+                    console.log('Success ' + currentRecord.get('c_isConverted'));
+                }
+            }
+        });        
+    }  
 });

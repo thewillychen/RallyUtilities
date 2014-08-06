@@ -73,7 +73,7 @@ Ext.define('CustomApp', {
                 title: "Confirm link to parent initiative",
                 message: 'Please select at least one feature to clink',
                 confirmLabel: 'Okay',
-                modal: true,
+                modal: true
             });
         }
     },
@@ -87,7 +87,7 @@ Ext.define('CustomApp', {
 
     _getInitiatives: function(currentRecord){
         var initiativeStore = Ext.create('Rally.data.wsapi.Store', {
-            model: 'PortfolioItem/Initiative',
+            model: 'PortfolioItem/Initiative'
         });
 
         initiativeStore.load({

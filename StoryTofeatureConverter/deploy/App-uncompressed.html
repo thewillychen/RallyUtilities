@@ -7,16 +7,22 @@
 
     <script type="text/javascript">
         Rally.onReady(function () {
-                var selectedRecords = [];
+                /*Author: Willy Chen
+Email: Willy.Chen@duke.edu
+Converts user story's brought in from Jira to Features in the same Rally Project
+Dependencies: Project or workspace has components, jiraid, jiraLink, fixversion, and components fields visible for portfolio items and for userstories in the designated project. 
+The boolean field isConverted should also be present to avoid duplication*/
+var selectedRecords = [];
+var that;
 Ext.define('CustomApp', {
     extend: 'Rally.app.App',
     componentCls: 'app',
     items:{ html:'<a href="https://help.rallydev.com/apps/2.0rc3/doc/">App SDK 2.0rc3 Docs</a>'},
     launch: function() {
-       // var selectedRecords = [];
+        that = this;
         var grid = this.add({
             xtype: 'rallygrid',
-            columnCfgs: ['FormattedID','Name','JiraID','FixVersion'],
+            columnCfgs: ['FormattedID','Name','JiraID','JiraLink', 'FixVersion', 'Components', 'isConverted'],
             context: this.getContext(),
             enableEditing: false,
             enableBulkEdit:true,
@@ -25,35 +31,19 @@ Ext.define('CustomApp', {
             },
             listeners: {
                 select: this._onSelect,
-                deselect: this._onDeselect,
-                load: function(){
-                    var records = grid.getStore();
-                    console.log(records.count());
-                }
+                deselect: this._onDeselect
             }
         });
         this.add({
             xtype: 'rallybutton',
             text: 'Convert to Feature',
             listeners: {
-                click: this._convertToPortfolioItem
+                click: this._confirmConversion
             }
-/*            handler: function() { 
-                console.log('Converting selected to feature');
-                var a = this._convertToPortfolioItem();
-            }*/
-        });
-/*        this.add({
-            xtype: 'rallybutton',
-            text: 'Convert all',
-            handler: function() { 
-                console.log('converting all to feature'); 
-            }
-        });*/                
+        });           
     },
 
     _onSelect: function(rowModel, record, rowIndex, options) {
-
         console.log('onSelect');
         selectedRecords.push(record);
         console.log(record);
@@ -69,88 +59,97 @@ Ext.define('CustomApp', {
     },
 
     _confirmConversion: function(){
-        var that = this;
-        console.log(that);
-        console.log('clicked');
         console.log('In confirm conversion');
-        if(selectedRecords.length === 0){
-            console.log('In confirmation');
-             Ext.create('Rally.ui.dialog.ConfirmDialog', {
-                title: "Confirm Portfolio item Conversion",
+        if(selectedRecords.length > 0){
+            Ext.create('Rally.ui.dialog.ConfirmDialog', {
+                title: "Confirm Conversion to Feature",
                 message: 'Are you sure?',
                 confirmLabel: 'Yes',
                 modal: true,
                 listeners: {
-                    confirm: function(){
-                        console.log('in confirm');
-                        that._convertToPortfolioItem();
-                    }
+                    confirm: that._getDataModel
                 }
             });           
         }
         else{
+            console.log('in else');
             Ext.create('Rally.ui.dialog.ConfirmDialog', {
                 title: "Confirm Portfolio item Conversion",
                 message: 'Please select at least one user story to convert',
                 confirmLabel: 'Okay',
                 modal: true,
-                listeners: {
-                    confirm: this.close
-                }
             });
         }
     },
 
-
-    _convertToPortfolioItem: function(){
-        this.record = record;
-        function convertToFeature(record){
-            Rally.data.ModelFactory.getModal({
-                type: 'PortfolioItem/Feature',
-                success: this.onModelRetrieved,
-                scope: this
-            });
-            console.log(record);
-            return record.get('Name');
-        }
-        for(var i =0; i < selectedRecords.length; i++){
-            var name = convertToFeature(selectedRecords[i]);
-            console.log(name);
-        }
-    },
-
-    onModelRetrieved: function(model){
-        this.model = model;
-        this.createFeature();
-    },
-
-    createFeature: function(){
-        var storyName = this.record.get('Name');
-        var storyDescription = this.record.get('Description');
-        var storyProject = this.record.get('Project');
-        var storyReady = this.record.get('Ready');
-        var storyComponents = this.record.get('Components');
-        var storyFixVersion = this.record.get('FixVersion');
-        var storyJiraID = this.record.get('JiraID');
-
-
-        var newFeature = Ext.create(this.model, {
-            Name: storyName,
-            Description: storyDescription,
-            Project: storyProject,
-            Ready: storyReady,
-            FixVersion: storyFixVersion,
-            JiraID: storyJiraID
+    _getDataModel: function(){
+        console.log('in convertToFeature');
+        Rally.data.ModelFactory.getModel({
+            type: 'PortfolioItem/Feature',
+            success: that._onModelRetrieved,
+            scope: this
         });
-       /* newFeature.save({
+    },
+
+    _onModelRetrieved: function(model){
+        console.log('in on model retrieved');
+        that.model = model;
+        that._createFeatureAndCopyFields();
+    },
+
+    _createFeatureAndCopyFields: function(){
+        for(var i =0; i < selectedRecords.length; i++){
+            var current = selectedRecords[i];
+            console.log('In create feature');
+            var storyName = current.get('Name');
+            var storyDescription = current.get('Description');
+            var storyProject = current.get('Project');
+            var storyReady = current.get('Ready');
+            var storyComponents = current.get('Components');
+            var storyFixVersion = current.get('c_FixVersion');
+            var storyJiraID = current.get('c_JiraID');
+            //var storyJiraLink = current.get('c_JiraLink');
+
+            var newFeature = Ext.create(this.model, {
+                Name: storyName,
+                Description: storyDescription,
+                Project: storyProject,
+                Ready: storyReady,
+                c_Components: storyComponents,
+                c_FixVersion: storyFixVersion,
+                c_JiraID: storyJiraID
+                //c_JiraLink: storyJiraLink
+            });
+
+            if(!current.get('c_isConverted')){
+                console.log(newFeature);
+                newFeature.save({
+                    callback: function(result, operation) {
+                        if(operation.wasSuccessful()) {
+                            console.log(result.get('Name'));
+                            that._setConverted(current);
+                        }
+                        else{
+                            console.log('failure');
+                        }
+                    }            
+                });
+            }
+        }
+    },
+    
+    _setConverted: function(currentRecord){
+        currentRecord.set('c_isConverted', true);
+        currentRecord.save({
             callback: function(result, operation) {
                 if(operation.wasSuccessful()) {
-                    console.log 
+                    console.log('Success ' + currentRecord.get('c_isConverted'));
                 }
-            }            
-        })*/
-    }   
+            }
+        });        
+    }  
 });
+
 
             Rally.launchApp('CustomApp', {
                 name:"storyToFeatureConverter",
